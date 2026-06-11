@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Regulação de Internação — MG</title>
+<style>
+  :root {
+    --verde: #0a7a4b;
+    --verde-escuro: #065535;
+    --verde-claro: #e8f5f0;
+    --verde-medio: #c2e8d8;
+    --azul: #1a4a7a;
+    --azul-claro: #e8f0fa;
+    --laranja: #d4670a;
+    --laranja-claro: #fef3e8;
+    --cinza-fundo: #f7f8fa;
+    --cinza-borda: #dde2e8;
+    --cinza-texto: #4a5568;
+    --preto: #1a202c;
+    --branco: #ffffff;
+    --vermelho: #c53030;
+    --amarelo: #d4a017;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: var(--cinza-fundo);
+    color: var(--preto);
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: linear-gradient(135deg, var(--verde-escuro) 0%, var(--verde) 100%);
+    color: white;
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  }
+  .header-icon {
+    width: 44px; height: 44px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+  }
+  header h1 { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; }
+  header p  { font-size: 12px; opacity: 0.8; margin-top: 2px; }
+
+  /* ── LAYOUT ── */
+  .container { max-width: 1100px; margin: 0 auto; padding: 20px 16px; }
+
+  /* ── PAINEL DE BUSCA ── */
+  .search-panel {
+    background: var(--branco);
+    border: 1px solid var(--cinza-borda);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  }
+  .search-panel h2 {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--verde-escuro);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 16px;
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+  }
+  @media (max-width: 700px) {
+    .form-grid { grid-template-columns: 1fr; }
+  }
+
+  .form-group { display: flex; flex-direction: column; gap: 5px; }
+  .form-group label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--cinza-texto);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+  }
+  .form-group label span.req {
+    color: var(--vermelho);
+    margin-left: 2px;
+  }
+  .form-group select,
+  .form-group input,
+  .form-group textarea {
+    border: 1.5px solid var(--cinza-borda);
+    border-radius: 8px;
+    padding: 9px 12px;
+    font-size: 14px;
+    font-family: inherit;
+    color: var(--preto);
+    background: var(--branco);
+    transition: border-color 0.2s;
+    width: 100%;
+  }
+  .form-group select:focus,
+  .form-group input:focus,
+  .form-group textarea:focus {
+    outline: none;
+    border-color: var(--verde);
+  }
+  .form-group textarea { resize: vertical; min-height: 70px; }
+
+  .form-row-full { grid-column: 1 / -1; }
+
+  .form-actions {
+    display: flex; gap: 10px; align-items: center; margin-top: 16px;
+    flex-wrap: wrap;
+  }
+  .btn-primary {
+    background: var(--verde);
+    color: white;
+    border: none;
+    padding: 10px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .btn-primary:hover { background: var(--verde-escuro); }
+  .btn-primary:active { transform: scale(0.98); }
+  .btn-primary:disabled { background: #aaa; cursor: not-allowed; }
+
+  .btn-ia {
+    background: var(--azul);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .btn-ia:hover { background: #0f3460; }
+  .btn-ia:disabled { background: #aaa; cursor: not-allowed; }
+
+  .btn-limpar {
+    background: none;
+    color: var(--cinza-texto);
+    border: 1.5px solid var(--cinza-borda);
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: border-color 0.2s;
+  }
+  .btn-limpar:hover { border-color: var(--vermelho); color: var(--vermelho); }
+
+  /* ── STATUS ── */
+  .status-bar {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 13px; color: var(--cinza-texto);
+    margin-bottom: 16px;
+    padding: 10px 14px;
+    background: var(--branco);
+    border-radius: 8px;
+    border: 1px solid var(--cinza-borda);
+  }
+  .status-bar.loading { color: var(--azul); }
+  .status-bar.success { color: var(--verde); }
+  .status-bar.error { color: var(--vermelho); background: #fff5f5; border-color: #fed7d7; }
+
+  /* ── ANÁLISE IA ── */
+  .ia-panel {
+    background: linear-gradient(135deg, #f0f4ff, #e8f5f0);
+    border: 1.5px solid #b8cce4;
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 20px;
+  }
+  .ia-panel h3 {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--azul);
+    margin-bottom: 10px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .ia-panel p {
+    font-size: 13px;
+    color: var(--preto);
+    line-height: 1.6;
+    white-space: pre-wrap;
+  }
+
+  /* ── RESULTADOS ── */
+  .results-section { margin-bottom: 24px; }
+  .results-section h3 {
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    margin-bottom: 10px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .sec-alta h3  { background: var(--verde-claro); color: var(--verde-escuro); }
+  .sec-media h3 { background: #fff3cd; color: #856404; }
+  .sec-baixa h3 { background: #f0f0f0; color: #555; }
+
+  .badge {
+    background: rgba(0,0,0,0.08);
+    border-radius: 20px;
+    padding: 2px 8px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  /* ── CARD DE HOSPITAL ── */
+  .hospital-card {
+    background: var(--branco);
+    border: 1px solid var(--cinza-borda);
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    transition: box-shadow 0.2s, border-color 0.2s;
+    cursor: pointer;
+  }
+  .hospital-card:hover {
+    border-color: var(--verde);
+    box-shadow: 0 2px 12px rgba(10,122,75,0.1);
+  }
+  .hospital-card.expanded {
+    border-color: var(--verde);
+    box-shadow: 0 2px 16px rgba(10,122,75,0.12);
+  }
+
+  .card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .card-header-left { flex: 1; min-width: 0; }
+  .card-nome {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--preto);
+    margin-bottom: 4px;
+    line-height: 1.3;
+  }
+  .card-meta {
+    font-size: 12px;
+    color: var(--cinza-texto);
+    display: flex; gap: 12px; flex-wrap: wrap;
+  }
+  .card-meta span { display: flex; align-items: center; gap: 4px; }
+
+  .card-tags {
+    display: flex; gap: 5px; flex-wrap: wrap; margin-top: 8px;
+  }
+  .tag {
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 20px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .tag-uti     { background: #fef3e8; color: #c05c00; border: 1px solid #fbd38d; }
+  .tag-ab      { background: var(--verde-claro); color: var(--verde-escuro); border: 1px solid var(--verde-medio); }
+  .tag-samu    { background: #ebf4ff; color: var(--azul); border: 1px solid #bee3f8; }
+  .tag-ped     { background: #faf0ff; color: #6b21a8; border: 1px solid #e9d5ff; }
+  .tag-spec    { background: var(--cinza-fundo); color: var(--cinza-texto); border: 1px solid var(--cinza-borda); }
+  .tag-match   { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; font-weight: 700; }
+
+  .card-expand-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 18px;
+    color: var(--cinza-texto);
+    padding: 2px 6px;
+    transition: transform 0.2s;
+    flex-shrink: 0;
+  }
+  .expanded .card-expand-btn { transform: rotate(180deg); }
+
+  /* ── DETALHE DO HOSPITAL ── */
+  .card-detail {
+    display: none;
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid var(--cinza-borda);
+  }
+  .expanded .card-detail { display: block; }
+
+  .detail-section { margin-bottom: 14px; }
+  .detail-section h4 {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--cinza-texto);
+    margin-bottom: 8px;
+  }
+
+  .specs-table {
+    width: 100%;
+    font-size: 12px;
+    border-collapse: collapse;
+  }
+  .specs-table th {
+    text-align: left;
+    padding: 6px 8px;
+    background: var(--cinza-fundo);
+    border-bottom: 1px solid var(--cinza-borda);
+    font-weight: 600;
+    color: var(--cinza-texto);
+    font-size: 11px;
+  }
+  .specs-table td {
+    padding: 6px 8px;
+    border-bottom: 1px solid #f0f0f0;
+    vertical-align: top;
+  }
+  .specs-table tr:last-child td { border-bottom: none; }
+  .specs-table tr.highlight-row { background: #f0fff8; }
+  .specs-table tr.highlight-row td:first-child { font-weight: 700; color: var(--verde-escuro); }
+
+  .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+  .dot-sim { background: var(--verde); }
+  .dot-nao { background: #ddd; }
+
+  /* ── MAPA BTN ── */
+  .mapa-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: none;
+    border: 1.5px solid var(--azul);
+    color: var(--azul);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.2s;
+  }
+  .mapa-btn:hover { background: var(--azul-claro); }
+
+  /* ── SPINNER ── */
+  .spinner {
+    display: inline-block;
+    width: 16px; height: 16px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── EMPTY STATE ── */
+  .empty-state {
+    text-align: center;
+    padding: 48px 20px;
+    color: var(--cinza-texto);
+  }
+  .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
+  .empty-state h3 { font-size: 16px; margin-bottom: 8px; }
+  .empty-state p { font-size: 13px; }
+
+  /* ── LOADING DADOS ── */
+  #loading-dados {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--cinza-texto);
+    font-size: 14px;
+  }
+  #loading-dados .blink { animation: blink 1s infinite; }
+  @keyframes blink { 50% { opacity: 0.3; } }
+
+  /* ── FOOTER ── */
+  footer {
+    text-align: center;
+    padding: 20px;
+    font-size: 11px;
+    color: #999;
+    border-top: 1px solid var(--cinza-borda);
+    margin-top: 32px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-icon">🏥</div>
+  <div>
+    <h1>Regulação de Internação — Minas Gerais</h1>
+    <p>Consulta de hospitais por macrorregião, tipo de leito e especialidade</p>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- PAINEL DE BUSCA -->
+  <div class="search-panel">
+    <h2>🔍 Parâmetros da Regulação</h2>
+    <div class="form-grid">
+
+      <!-- Obrigatórios -->
+      <div class="form-group">
+        <label>Macrorregião <span class="req">*</span></label>
+        <select id="sel-macro">
+          <option value="">Selecione a macrorregião...</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Tipo de Leito <span class="req">*</span></label>
+        <select id="sel-leito">
+          <option value="">Selecione o tipo de leito...</option>
+          <option value="enfermaria">Enfermaria</option>
+          <option value="uti">UTI / CTI</option>
+          <option value="uti-neo">UTI Neonatal</option>
+          <option value="uti-ped">UTI Pediátrica</option>
+          <option value="uti-coron">UTI Coronariana</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Especialidade Necessária <span class="req">*</span></label>
+        <select id="sel-especialidade">
+          <option value="">Selecione a especialidade...</option>
+        </select>
+      </div>
+
+      <!-- Opcionais -->
+      <div class="form-group">
+        <label>Microrregião <span style="color:#aaa;font-size:10px;margin-left:4px">opcional</span></label>
+        <select id="sel-micro">
+          <option value="">Todas as microrregiões</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>CID <span style="color:#aaa;font-size:10px;margin-left:4px">opcional</span></label>
+        <input type="text" id="inp-cid" placeholder="Ex: J18.0, I21, S72..." />
+      </div>
+
+      <div class="form-group">
+        <label>Procedimento / Diagnóstico <span style="color:#aaa;font-size:10px;margin-left:4px">opcional</span></label>
+        <input type="text" id="inp-proc" placeholder="Ex: fratura de fêmur, AVC isquêmico..." />
+      </div>
+
+      <div class="form-group form-row-full">
+        <label>Anamnese / Resumo Clínico <span style="color:#aaa;font-size:10px;margin-left:4px">opcional — enriquece a análise da IA</span></label>
+        <textarea id="inp-anamnese" placeholder="Descreva brevemente o quadro clínico, condições especiais, urgência..."></textarea>
+      </div>
+
+    </div>
+
+    <div class="form-actions">
+      <button class="btn-primary" id="btn-buscar">
+        🔍 Buscar Hospitais
+      </button>
+      <button class="btn-ia" id="btn-ia" disabled>
+        🤖 Analisar com IA
+      </button>
+      <button class="btn-limpar" id="btn-limpar">
+        Limpar
+      </button>
+    </div>
+  </div>
+
+  <!-- STATUS -->
+  <div id="status-bar" class="status-bar" style="display:none"></div>
+
+  <!-- ANÁLISE IA -->
+  <div id="ia-panel" class="ia-panel" style="display:none">
+    <h3>🤖 Análise da IA</h3>
+    <p id="ia-texto"></p>
+  </div>
+
+  <!-- LOADING DADOS -->
+  <div id="loading-dados">
+    <div class="blink">⏳ Carregando base de dados hospitalar...</div>
+    <p style="margin-top:8px;font-size:12px">Aguarde, isso pode levar alguns segundos na primeira vez.</p>
+  </div>
+
+  <!-- RESULTADOS -->
+  <div id="resultados" style="display:none">
+
+    <div class="results-section sec-alta" id="sec-alta" style="display:none">
+      <h3>🟢 Alta Prioridade — Microrregião <span class="badge" id="cnt-alta">0</span></h3>
+      <div id="lista-alta"></div>
+    </div>
+
+    <div class="results-section sec-media" id="sec-media" style="display:none">
+      <h3>🟡 Média Prioridade — Macrorregião <span class="badge" id="cnt-media">0</span></h3>
+      <div id="lista-media"></div>
+    </div>
+
+    <div class="results-section sec-baixa" id="sec-baixa" style="display:none">
+      <h3>⚪ Baixa Prioridade — Fora da Macrorregião <span class="badge" id="cnt-baixa">0</span></h3>
+      <div id="lista-baixa"></div>
+    </div>
+
+    <div id="empty-state" class="empty-state" style="display:none">
+      <div class="icon">🔍</div>
+      <h3>Nenhum hospital encontrado</h3>
+      <p>Tente ajustar os critérios de busca ou selecionar outra especialidade.</p>
+    </div>
+
+  </div>
+
+</div>
+
+<footer>
+  Sistema de apoio à regulação de internação hospitalar — Minas Gerais &nbsp;|&nbsp; Dados: Grades de Referência das Macrorregiões de Saúde
+</footer>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// DADOS GLOBAIS
+// ═══════════════════════════════════════════════════════════
+let DADOS = null;
+let RESULTADO_ATUAL = [];
+
+const MACRORREGIOES = [
+  "CENTRO", "CENTRO SUL", "EXTREMO SUL", "JEQUITINHONHA",
+  "LESTE", "LESTE DO SUL", "NORDESTE", "NOROESTE",
+  "NORTE", "OESTE", "SUDESTE", "SUDOESTE", "SUL",
+  "TRIANGULO DO NORTE", "TRIANGULO DO SUL", "VALE DO AÇO"
+];
+
+const ESPECIALIDADES = [
+  "AVC em janela terapêutica","Bucomaxilofacial","Bucomaxilofacial Urgência/Emergência",
+  "Cardiologia","Cardiologia Intervencionista","Cardiologia Pediátrica","Cateterismo",
+  "Cintura escapular","Cintura pélvica","Cirurgia Cardiovascular","Cirurgia Endovascular",
+  "Cirurgia Geral","Cirurgia Pediátrica","Cirurgia Vascular","Cirurgia do Aparelho Circulatório",
+  "Cirurgia do aparelho Circulatório","Cirurgia do sistema osteomuscular","Clínica Geral",
+  "Coluna e nervos periféricos","Coluna vertebral e caixa torácica","Cuidados Prolongados",
+  "Eletrofisiologia","Gestação de Alto risco","Ginecologia (outros)","Grande Queimados (CTQ porte III)",
+  "Hemodinâmica isolada","IAM em janela terapêutica","Instituição de Risco Habitual",
+  "Intoxicação e Acidentes com Animais Peçonhentos","Membros inferiores","Membros superiores",
+  "Médio Queimado (CTQ porte II)","Nefrologia","Neurocirurgia","Neurocirurgia funcional estereotáxica",
+  "Neurocirurgias vasculares","Neurologia","Oftalmologia","Oncologia","Ortopedia geral",
+  "Otorrino","Pediatria","Pequenas Cirurgias","Plástica","Profilaxia Pós-exposição","SRAG",
+  "Saúde Mental","Saúde Ocular","Toracica","Tratamento neuro-endovascular",
+  "Tratamento neurocirúrgico da dor funcional","Trauma - Raquimedular",
+  "Trauma e anomalias do desenvolvimento","Trauma-ortopedia","Tumores do sistema nervoso",
+  "Urologia","Vascular"
+];
+
+// ═══════════════════════════════════════════════════════════
+// INICIALIZAÇÃO
+// ═══════════════════════════════════════════════════════════
+window.addEventListener('DOMContentLoaded', () => {
+  popularSelects();
+  carregarDados();
+  bindEventos();
+});
+
+function popularSelects() {
+  const selMacro = document.getElementById('sel-macro');
+  MACRORREGIOES.forEach(m => {
+    selMacro.innerHTML += `<option value="${m}">${titleCase(m)}</option>`;
+  });
+
+  const selSpec = document.getElementById('sel-especialidade');
+  ESPECIALIDADES.forEach(e => {
+    selSpec.innerHTML += `<option value="${e}">${e}</option>`;
+  });
+}
+
+function titleCase(str) {
+  return str.split(' ').map(w =>
+    w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()
+  ).join(' ');
+}
+
+async function carregarDados() {
+  try {
+    const resp = await fetch('dados_site.json');
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    DADOS = await resp.json();
+    document.getElementById('loading-dados').style.display = 'none';
+    document.getElementById('resultados').style.display = 'block';
+    mostrarEstadoInicial();
+  } catch(e) {
+    document.getElementById('loading-dados').innerHTML =
+      `<div style="color:#c53030">❌ Erro ao carregar a base de dados.<br>
+       <small>Certifique-se de que o arquivo <strong>dados_site.json</strong> está na mesma pasta que o index.html</small><br>
+       <small style="color:#888">Detalhes: ${e.message}</small></div>`;
+  }
+}
+
+function mostrarEstadoInicial() {
+  // Não mostrar nada — aguardar busca
+}
+
+// ═══════════════════════════════════════════════════════════
+// EVENTOS
+// ═══════════════════════════════════════════════════════════
+function bindEventos() {
+  document.getElementById('sel-macro').addEventListener('change', atualizarMicro);
+  document.getElementById('btn-buscar').addEventListener('click', buscar);
+  document.getElementById('btn-ia').addEventListener('click', analisarIA);
+  document.getElementById('btn-limpar').addEventListener('click', limpar);
+}
+
+function atualizarMicro() {
+  const macro = document.getElementById('sel-macro').value;
+  const selMicro = document.getElementById('sel-micro');
+  selMicro.innerHTML = '<option value="">Todas as microrregiões</option>';
+
+  if (!macro || !DADOS || !DADOS[macro]) return;
+
+  const micros = [...new Set(DADOS[macro].map(h => h.micro).filter(Boolean))].sort();
+  micros.forEach(m => {
+    selMicro.innerHTML += `<option value="${m}">${m}</option>`;
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+// BUSCA PRINCIPAL
+// ═══════════════════════════════════════════════════════════
+function buscar() {
+  if (!DADOS) return;
+
+  const macro       = document.getElementById('sel-macro').value;
+  const leito       = document.getElementById('sel-leito').value;
+  const especialidade = document.getElementById('sel-especialidade').value;
+
+  if (!macro || !leito || !especialidade) {
+    mostrarStatus('⚠️ Preencha os três campos obrigatórios: Macrorregião, Tipo de Leito e Especialidade.', 'error');
+    return;
+  }
+
+  const micro = document.getElementById('sel-micro').value;
+
+  esconderStatus();
+  esconderIA();
+  RESULTADO_ATUAL = [];
+
+  // Filtrar hospitais por critérios
+  const alta  = [];
+  const media = [];
+  const baixa = [];
+
+  // Percorrer todas as macros para baixa prioridade
+  Object.entries(DADOS).forEach(([macroKey, hospitais]) => {
+    hospitais.forEach(h => {
+      const score = avaliarHospital(h, leito, especialidade);
+      if (score === 0) return; // não atende a especialidade
+
+      const item = { ...h, _score: score, _macro: macroKey };
+
+      if (macroKey === macro) {
+        if (micro && h.micro === micro) {
+          alta.push(item);
+        } else {
+          media.push(item);
+        }
+      } else {
+        baixa.push(item);
+      }
+    });
+  });
+
+  // Ordenar: score desc, depois porta_samu, depois porta_aberta
+  const ordenar = arr => arr.sort((a, b) => {
+    if (b._score !== a._score) return b._score - a._score;
+    if (b.sa !== a.sa) return b.sa ? 1 : -1;
+    if (b.ab !== a.ab) return b.ab ? 1 : -1;
+    return a.nome.localeCompare(b.nome);
+  });
+
+  ordenar(alta); ordenar(media); ordenar(baixa);
+
+  RESULTADO_ATUAL = [...alta, ...media, ...baixa];
+  document.getElementById('btn-ia').disabled = RESULTADO_ATUAL.length === 0;
+
+  renderizarResultados(alta, media, baixa, micro);
+}
+
+function avaliarHospital(h, leito, especialidade) {
+  // Verificar tipo de leito
+  if (leito === 'uti' || leito === 'uti-neo' || leito === 'uti-ped' || leito === 'uti-coron') {
+    if (!h.uti) return 0; // hospital sem UTI, só retornar 0 se for UTI
+    // Para UTIs específicas, verificar especialidade diretamente
+  }
+
+  // Verificar se tem a especialidade
+  const specMatch = h.specs.find(s =>
+    s.n.toLowerCase() === especialidade.toLowerCase() ||
+    s.n.toLowerCase().includes(especialidade.toLowerCase()) ||
+    especialidade.toLowerCase().includes(s.n.toLowerCase())
+  );
+
+  if (!specMatch) return 0;
+
+  let score = 10;
+
+  // Complexidade alta vale mais
+  if (specMatch.x && specMatch.x.toUpperCase().includes('ALTA')) score += 5;
+
+  // Porta SAMU
+  if (h.sa) score += 3;
+
+  // Porta aberta
+  if (h.ab) score += 2;
+
+  // Adulto/pediátrico
+  if (h.adu) score += 1;
+
+  return score;
+}
+
+// ═══════════════════════════════════════════════════════════
+// RENDERIZAÇÃO
+// ═══════════════════════════════════════════════════════════
+function renderizarResultados(alta, media, baixa, micro) {
+  const especialidade = document.getElementById('sel-especialidade').value;
+
+  const secAlta  = document.getElementById('sec-alta');
+  const secMedia = document.getElementById('sec-media');
+  const secBaixa = document.getElementById('sec-baixa');
+  const empty    = document.getElementById('empty-state');
+
+  document.getElementById('lista-alta').innerHTML  = '';
+  document.getElementById('lista-media').innerHTML = '';
+  document.getElementById('lista-baixa').innerHTML = '';
+
+  document.getElementById('cnt-alta').textContent  = alta.length;
+  document.getElementById('cnt-media').textContent = media.length;
+  document.getElementById('cnt-baixa').textContent = baixa.length;
+
+  if (micro) {
+    secAlta.querySelector('h3').innerHTML =
+      `🟢 Alta Prioridade — ${micro} <span class="badge">${alta.length}</span>`;
+  }
+
+  const total = alta.length + media.length + baixa.length;
+
+  if (total === 0) {
+    secAlta.style.display = 'none';
+    secMedia.style.display = 'none';
+    secBaixa.style.display = 'none';
+    empty.style.display = 'block';
+    return;
+  }
+
+  empty.style.display = 'none';
+
+  if (alta.length > 0) {
+    secAlta.style.display = 'block';
+    alta.forEach(h => document.getElementById('lista-alta').appendChild(criarCard(h, especialidade)));
+  } else { secAlta.style.display = 'none'; }
+
+  if (media.length > 0) {
+    secMedia.style.display = 'block';
+    media.forEach(h => document.getElementById('lista-media').appendChild(criarCard(h, especialidade)));
+  } else { secMedia.style.display = 'none'; }
+
+  if (baixa.length > 0) {
+    secBaixa.style.display = 'block';
+    baixa.slice(0, 20).forEach(h => document.getElementById('lista-baixa').appendChild(criarCard(h, especialidade)));
+    if (baixa.length > 20) {
+      const mais = document.createElement('p');
+      mais.style = 'text-align:center;font-size:12px;color:#888;padding:8px';
+      mais.textContent = `+ ${baixa.length - 20} hospitais fora da macrorregião não exibidos`;
+      document.getElementById('lista-baixa').appendChild(mais);
+    }
+  } else { secBaixa.style.display = 'none'; }
+
+  mostrarStatus(`✅ ${total} hospital${total > 1 ? 'is' : ''} encontrado${total > 1 ? 's' : ''} (${alta.length} alta · ${media.length} média · ${baixa.length} baixa prioridade)`, 'success');
+}
+
+function criarCard(h, especialidade) {
+  const div = document.createElement('div');
+  div.className = 'hospital-card';
+
+  // Encontrar spec que bate
+  const specMatch = h.specs.find(s =>
+    s.n.toLowerCase() === especialidade.toLowerCase() ||
+    s.n.toLowerCase().includes(especialidade.toLowerCase())
+  );
+
+  // Tags
+  const tags = [];
+  if (h.uti) tags.push(`<span class="tag tag-uti">🏥 UTI</span>`);
+  if (h.ab)  tags.push(`<span class="tag tag-ab">🚪 Porta Aberta</span>`);
+  if (h.sa)  tags.push(`<span class="tag tag-samu">🚑 SAMU</span>`);
+  if (h.ped) tags.push(`<span class="tag tag-ped">👶 Pediátrico</span>`);
+  if (specMatch) {
+    const cx = specMatch.x ? specMatch.x.trim() : '';
+    if (cx) tags.push(`<span class="tag tag-match">✓ ${especialidade} · ${cx}</span>`);
+    else    tags.push(`<span class="tag tag-match">✓ ${especialidade}</span>`);
+  }
+
+  // Outras specs resumidas
+  const outrasSpecs = h.specs
+    .filter(s => s.n.toLowerCase() !== especialidade.toLowerCase() &&
+                 !s.n.toLowerCase().includes(especialidade.toLowerCase()))
+    .slice(0, 3)
+    .map(s => `<span class="tag tag-spec">${s.n}</span>`)
+    .join('');
+
+  // Tabela de especialidades
+  const rowsSpecs = h.specs.map(s => {
+    const isMatch = s.n.toLowerCase() === especialidade.toLowerCase() ||
+                    s.n.toLowerCase().includes(especialidade.toLowerCase());
+    return `<tr class="${isMatch ? 'highlight-row' : ''}">
+      <td>${s.n}</td>
+      <td>${s.c || '—'}</td>
+      <td>${s.x || '—'}</td>
+      <td><span class="dot ${s.ab ? 'dot-sim' : 'dot-nao'}"></span></td>
+      <td><span class="dot ${s.sa ? 'dot-sim' : 'dot-nao'}"></span></td>
+      <td><span class="dot ${s.a ? 'dot-sim' : 'dot-nao'}"></span></td>
+      <td><span class="dot ${s.p ? 'dot-sim' : 'dot-nao'}"></span></td>
+      <td style="font-size:11px;color:#666">${s.r ? s.r.substring(0, 40) : '—'}</td>
+    </tr>`;
+  }).join('');
+
+  const obs = h.specs
+    .filter(s => s.o && s.o.trim())
+    .map(s => s.o.trim())
+    .filter((v, i, a) => a.indexOf(v) === i)
+    .join(' | ');
+
+  const mapUrl = `https://www.google.com/maps/search/${encodeURIComponent(h.nome + ' ' + h.mun + ' MG')}`;
+
+  div.innerHTML = `
+    <div class="card-header">
+      <div class="card-header-left">
+        <div class="card-nome">${h.nome}</div>
+        <div class="card-meta">
+          <span>📍 ${h.mun}${h.micro ? ' · ' + h.micro : ''}</span>
+          <span>📋 CNES ${h.cnes || '—'}</span>
+          <span>🗺️ ${titleCase(h._macro || h.macro)}</span>
+        </div>
+        <div class="card-tags">${tags.join('')} ${outrasSpecs}</div>
+      </div>
+      <button class="card-expand-btn" title="Ver detalhes">▼</button>
+    </div>
+
+    <div class="card-detail">
+      <div class="detail-section">
+        <h4>Especialidades e Clínicas</h4>
+        <table class="specs-table">
+          <thead>
+            <tr>
+              <th>Especialidade</th>
+              <th>Clínica</th>
+              <th>Complexidade</th>
+              <th title="Porta Aberta">P.Ab</th>
+              <th title="Porta SAMU">SAMU</th>
+              <th title="Adulto">Adu</th>
+              <th title="Pediátrico">Ped</th>
+              <th>Retaguarda</th>
+            </tr>
+          </thead>
+          <tbody>${rowsSpecs}</tbody>
+        </table>
+      </div>
+      ${obs ? `<div class="detail-section"><h4>Observações</h4><p style="font-size:12px;color:#555;line-height:1.5">${obs}</p></div>` : ''}
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px">
+        <a href="${mapUrl}" target="_blank" class="mapa-btn">🗺️ Ver no Mapa</a>
+      </div>
+    </div>
+  `;
+
+  // Toggle expand
+  div.querySelector('.card-expand-btn').addEventListener('click', (e) => {
+    e.stopPropagation();
+    div.classList.toggle('expanded');
+  });
+  div.addEventListener('click', () => div.classList.toggle('expanded'));
+
+  return div;
+}
+
+// ═══════════════════════════════════════════════════════════
+// ANÁLISE COM IA
+// ═══════════════════════════════════════════════════════════
+async function analisarIA() {
+  if (RESULTADO_ATUAL.length === 0) return;
+
+  const btn = document.getElementById('btn-ia');
+  btn.disabled = true;
+  btn.innerHTML = `<span class="spinner"></span> Analisando...`;
+
+  const macro       = document.getElementById('sel-macro').value;
+  const leito       = document.getElementById('sel-leito').value;
+  const especialidade = document.getElementById('sel-especialidade').value;
+  const micro       = document.getElementById('sel-micro').value;
+  const cid         = document.getElementById('inp-cid').value;
+  const proc        = document.getElementById('inp-proc').value;
+  const anamnese    = document.getElementById('inp-anamnese').value;
+
+  // Resumo dos primeiros hospitais para a IA
+  const top10 = RESULTADO_ATUAL.slice(0, 10).map(h => {
+    const specMatch = h.specs.find(s =>
+      s.n.toLowerCase().includes(especialidade.toLowerCase())
+    );
+    return `- ${h.nome} (${h.mun}, ${titleCase(h._macro || h.macro)}) | CNES: ${h.cnes} | UTI: ${h.uti ? 'SIM' : 'NÃO'} | Porta Aberta: ${h.ab ? 'SIM' : 'NÃO'} | SAMU: ${h.sa ? 'SIM' : 'NÃO'}${specMatch ? ` | ${especialidade}: ${specMatch.x || 'confirmado'}` : ''}`;
+  }).join('\n');
+
+  const prompt = `Você é um regulador experiente de internação hospitalar em Minas Gerais.
+
+PARÂMETROS DA REGULAÇÃO:
+- Macrorregião: ${macro}${micro ? ` | Microrregião: ${micro}` : ''}
+- Tipo de leito solicitado: ${leito}
+- Especialidade necessária: ${especialidade}${cid ? ` | CID: ${cid}` : ''}${proc ? ` | Procedimento: ${proc}` : ''}
+${anamnese ? `- Dados clínicos: ${anamnese}` : ''}
+
+HOSPITAIS ENCONTRADOS (top ${Math.min(10, RESULTADO_ATUAL.length)} de ${RESULTADO_ATUAL.length}):
+${top10}
+
+Com base nesses dados, forneça uma análise objetiva e prática para o regulador:
+1. Quais hospitais são mais indicados para este caso e por quê (considerando complexidade, localização e recursos)
+2. Alertas ou pontos de atenção relevantes
+3. Sugestão de sequência de contato (qual tentar primeiro)
+
+Responda em texto claro, direto e em português, sem formatação markdown. Máximo 200 palavras.`;
+
+  try {
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 1000,
+        messages: [{ role: "user", content: prompt }]
+      })
+    });
+
+    if (!response.ok) throw new Error(`API error ${response.status}`);
+    const data = await response.json();
+    const texto = data.content?.[0]?.text || "Sem resposta da IA.";
+
+    document.getElementById('ia-texto').textContent = texto;
+    document.getElementById('ia-panel').style.display = 'block';
+
+  } catch(e) {
+    document.getElementById('ia-texto').textContent =
+      `Não foi possível conectar à IA. Erro: ${e.message}`;
+    document.getElementById('ia-panel').style.display = 'block';
+  }
+
+  btn.innerHTML = `🤖 Analisar com IA`;
+  btn.disabled = false;
+}
+
+// ═══════════════════════════════════════════════════════════
+// UTILITÁRIOS
+// ═══════════════════════════════════════════════════════════
+function limpar() {
+  document.getElementById('sel-macro').value = '';
+  document.getElementById('sel-leito').value = '';
+  document.getElementById('sel-especialidade').value = '';
+  document.getElementById('sel-micro').innerHTML = '<option value="">Todas as microrregiões</option>';
+  document.getElementById('inp-cid').value = '';
+  document.getElementById('inp-proc').value = '';
+  document.getElementById('inp-anamnese').value = '';
+
+  esconderStatus();
+  esconderIA();
+  RESULTADO_ATUAL = [];
+  document.getElementById('btn-ia').disabled = true;
+
+  ['sec-alta','sec-media','sec-baixa','empty-state'].forEach(id => {
+    document.getElementById(id).style.display = 'none';
+  });
+  ['lista-alta','lista-media','lista-baixa'].forEach(id => {
+    document.getElementById(id).innerHTML = '';
+  });
+}
+
+function mostrarStatus(msg, tipo) {
+  const bar = document.getElementById('status-bar');
+  bar.textContent = msg;
+  bar.className = `status-bar ${tipo}`;
+  bar.style.display = 'flex';
+}
+
+function esconderStatus() {
+  document.getElementById('status-bar').style.display = 'none';
+}
+
+function esconderIA() {
+  document.getElementById('ia-panel').style.display = 'none';
+}
+</script>
+</body>
+</html>
