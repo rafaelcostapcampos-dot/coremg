@@ -757,9 +757,10 @@ function renderizar(alta,media,baixa,micro,maxSc,deteccao){
   const tot=alta.length+media.length+baixa.length;
   const lstA=document.getElementById('lst-a'),lstM=document.getElementById('lst-m'),lstB=document.getElementById('lst-b');
   lstA.innerHTML='';lstM.innerHTML='';lstB.innerHTML='';
-  document.getElementById('cnt-a').textContent=alta.length;
-  document.getElementById('cnt-m').textContent=media.length;
-  document.getElementById('cnt-b').textContent=baixa.length;
+  const setTxt=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  setTxt('cnt-a',alta.length);
+  setTxt('cnt-m',media.length);
+  setTxt('cnt-b',baixa.length);
   document.getElementById('sec-a').style.display=alta.length?'block':'none';
   document.getElementById('sec-m').style.display=media.length?'block':'none';
   document.getElementById('sec-b').style.display=baixa.length?'block':'none';
