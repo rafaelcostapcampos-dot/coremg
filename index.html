@@ -270,6 +270,14 @@ footer{text-align:center;padding:20px;font-size:10px;color:#aaa;border-top:1px s
           </div>
         </div>
         <div class="fg">
+          <label>Complexidade do Caso<span class="opt-lbl">opcional — Alta prioriza a referência</span></label>
+          <div class="acw">
+            <input id="inp-cx" type="text" placeholder="Média ou Alta..." autocomplete="off">
+            <input id="hid-cx" type="hidden">
+            <div class="acd" id="cx-drop"></div>
+          </div>
+        </div>
+        <div class="fg">
           <label>CID<span class="opt-lbl">código ou texto</span></label>
           <input id="inp-cid" type="text" placeholder="Ex: I21, J18, S72 ou 'carcinoma'...">
         </div>
@@ -430,6 +438,9 @@ function initCampos(){
   registerAC('inp-spec','hid-spec','spec-drop',
     f=>SPECS.filter(s=>norm(s).includes(norm(f))).map(s=>({val:s,label:s}))
   );
+  registerAC('inp-cx','hid-cx','cx-drop',
+    f=>[{val:'ALTA',label:'Alta complexidade'},{val:'MÉDIA',label:'Média complexidade'}].filter(o=>norm(o.label).includes(norm(f)))
+  );
   registerAC('inp-perfil','hid-perfil','perfil-drop', f=>[]);
   registerAC('inp-micro','hid-micro','micro-drop', f=>[]);
   registerAC('inp-solic','hid-solic','solic-drop', f=>[]);
@@ -578,6 +589,27 @@ function mesmaEspec(nomeHosp, alvo){
   return false;
 }
 
+// Grupos clínicos: ligam o alvo genérico às sub-linhas da Resolução SES 10.838
+// (ex: "Trauma-ortopedia" ⇄ "Membros superiores", "Cintura pélvica"...)
+var GRUPOS_CLIN=[
+  {k:'trauma', re:/trauma|ortoped|cintura escapular|cintura pelvica|membros superiores|membros inferiores|coluna vertebral|osteomuscular|raquimedular/},
+  {k:'cardio', re:/cardio|coronari|cateterismo|hemodinamica|arritmia|eletrofisiolog/},
+  {k:'neuro',  re:/neurolog|neurocirurg|\bavc\b/},
+  {k:'vascular', re:/vascular|endovascular/},
+  {k:'bucomaxilo', re:/bucomaxilo/},
+  {k:'ocular', re:/oftalmolog|saude ocular|\bocular\b/},
+  {k:'onco', re:/oncolog|cancer|quimioterap|radioterap/},
+  {k:'gar', re:/gestac|obstetr|alto risco|\bgar\b|parto/},
+  {k:'ped', re:/pediatr|neonat/},
+  {k:'nefro', re:/nefrolog|dialise|renal/},
+  {k:'queimados', re:/queimad/}
+];
+function grupoDe(nome){
+  const n=norm(nome||'');
+  for(const g of GRUPOS_CLIN){ if(g.re.test(n)) return g.k; }
+  return null;
+}
+
 function avaliar(h,leito,perfil,spec,specsExtras){
   const rec=h.r||{};
   const motivos=[];
@@ -598,9 +630,21 @@ function avaliar(h,leito,perfil,spec,specsExtras){
   if(spec)specsAlvo.push(spec);
 
   let sm=null;
+  const cxCaso=(typeof window!=='undefined'&&window._cxCaso)||'';
+  const ehAltaSpec=s=>s.x&&s.x.toUpperCase().includes('ALTA');
   if(specsAlvo.length){
     for(const sa of specsAlvo){
-      sm=(h.s||[]).find(s=>mesmaEspec(s.n,sa));
+      if(cxCaso==='ALTA'){
+        const gAlvo=grupoDe(sa);
+        // 1º resolutiva que casa; 2º resolutiva do mesmo grupo clínico;
+        // 3º alta que casa; 4º qualquer que casa
+        sm=(h.s||[]).find(s=>mesmaEspec(s.n,sa)&&ehAltaSpec(s)&&s.res)
+         ||(gAlvo?(h.s||[]).find(s=>s.res&&ehAltaSpec(s)&&grupoDe(s.n)===gAlvo):null)
+         ||(h.s||[]).find(s=>mesmaEspec(s.n,sa)&&ehAltaSpec(s))
+         ||(h.s||[]).find(s=>mesmaEspec(s.n,sa));
+      } else {
+        sm=(h.s||[]).find(s=>mesmaEspec(s.n,sa));
+      }
       if(sm)break;
     }
     if(!sm)return null;
@@ -619,6 +663,7 @@ function avaliar(h,leito,perfil,spec,specsExtras){
         // RESOLVE de verdade: é o destino final para esta alta complexidade
         pts+=20;
         motivos.push({ic:'⭐',txt:`Referência RESOLUTIVA de ALTA complexidade em ${sm.n}`});
+        if(cxCaso==='ALTA'){ pts+=30; motivos.push({ic:'🎯',txt:'Caso de ALTA complexidade: este é o destino resolutivo indicado'}); }
       } else {
         // Só estabiliza e encaminha
         pts+=3;
@@ -631,7 +676,13 @@ function avaliar(h,leito,perfil,spec,specsExtras){
     } else {
       // Média complexidade
       pts+= ehUpa ? 2 : 5;
-      motivos.push({ic:'✓',txt:`Atende ${sm.n} (média complexidade)`});
+      if(cxCaso==='ALTA'){
+        // Caso é de ALTA e o hospital só atende MÉDIA nesta especialidade: não resolve
+        pts-=15;
+        motivos.push({ic:'⚠',txt:`Atende ${sm.n} apenas em MÉDIA — o caso é de ALTA complexidade${sm.r?'; referência: '+sm.r:''}`});
+      } else {
+        motivos.push({ic:'✓',txt:`Atende ${sm.n} (média complexidade)`});
+      }
     }
 
     // UPA penalizada para internação (não tem leito)
@@ -718,6 +769,7 @@ function buscarInterno(){
   const micro=document.getElementById('hid-micro').value;
   const microK=micro?norm(micro):'';
   const solicCnes=(document.getElementById('hid-solic')||{}).value||'';
+  window._cxCaso=(document.getElementById('hid-cx')||{}).value||'';
   let spec=document.getElementById('hid-spec').value;
 
   // ── Detecção combinada de TODAS as fontes (CID + procedimento + anamnese) ──
@@ -790,6 +842,19 @@ function buscarInterno(){
   // Ordenação: 1º quem cobre MAIS necessidades, 2º pontuação, 3º distância
   const ord=a=>a.sort((x,y)=>(y._cob.length-x._cob.length)||(y._sc-x._sc)||((x._km==null?9e9:x._km)-(y._km==null?9e9:y._km))||x.n.localeCompare(y.n));
   ord(alta);ord(media);ord(baixa);
+  // ── Caso de ALTA complexidade: a referência resolutiva lidera MESMO fora da micro ──
+  if(window._cxCaso==='ALTA'){
+    const ehRes=it=>it._sm && it._sm.x && it._sm.x.toUpperCase().includes('ALTA') && it._sm.res;
+    const promovidos=[];
+    // retira resolutivos de media/baixa (mesma macro primeiro, depois fora)
+    [media,baixa].forEach(arr=>{
+      for(let i=arr.length-1;i>=0;i--){ if(ehRes(arr[i])){ promovidos.unshift(arr.splice(i,1)[0]); } }
+    });
+    // resolutivos que já estavam na própria micro também vão para o topo
+    for(let i=alta.length-1;i>=0;i--){ if(ehRes(alta[i])){ promovidos.unshift(alta.splice(i,1)[0]); } }
+    promovidos.sort((a,b)=>(b._sc-a._sc)||((a._km||9e9)-(b._km||9e9)));
+    alta.unshift(...promovidos);
+  }
   // Extrair o hospital solicitante das listas para exibir destacado no topo
   let solicItem=null;
   const tirarSolic=arr=>{ for(let i=0;i<arr.length;i++){ if(arr[i]._solic){ solicItem=arr[i]; arr.splice(i,1); return; } } };
@@ -823,9 +888,12 @@ function renderizar(alta,media,baixa,micro,maxSc,deteccao){
   document.getElementById('sec-m').style.display=media.length?'block':'none';
   document.getElementById('sec-b').style.display=baixa.length?'block':'none';
   document.getElementById('empty-state').style.display=tot?'none':'block';
-  // Header da Alta Prioridade — recolhível (começa recolhida)
-  document.querySelector('#sec-a .sec-hdr').innerHTML='<span id="chev-a">▶</span> 🟢 Alta Prioridade'+(micro?' — '+esc(micro):' — Microrregião')+' <span class="bdg">'+alta.length+'</span> <span style="font-weight:400;font-size:9px;opacity:.7">(toque para abrir)</span>';
-  const lstAEl=document.getElementById('lst-a'); if(lstAEl)lstAEl.style.display='none'; // começa recolhida
+  // Header da Alta Prioridade — recolhível (começa recolhida; caso ALTA abre e muda o rótulo)
+  const ehCasoAlta = window._cxCaso==='ALTA';
+  document.querySelector('#sec-a .sec-hdr').innerHTML = ehCasoAlta
+    ? '<span id="chev-a">▼</span> 🎯 Caso de ALTA — referências resolutivas primeiro <span class="bdg">'+alta.length+'</span>'
+    : '<span id="chev-a">▶</span> 🟢 Alta Prioridade'+(micro?' — '+esc(micro):' — Microrregião')+' <span class="bdg">'+alta.length+'</span> <span style="font-weight:400;font-size:9px;opacity:.7">(toque para abrir)</span>';
+  const lstAEl=document.getElementById('lst-a'); if(lstAEl)lstAEl.style.display=ehCasoAlta?'block':'none';
 
   // Hospital solicitante (destacado no topo, fora do ranking)
   const secSolic=document.getElementById('sec-solic'), lstSolic=document.getElementById('lst-solic');
@@ -1036,8 +1104,8 @@ function card(h,maxSc,isBest){
 }
 
 function limpar(){
-  ['inp-mac','inp-leito','inp-perfil','inp-spec','inp-micro','inp-solic','inp-cid','inp-proc','inp-anam'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
-  ['hid-mac','hid-leito','hid-perfil','hid-spec','hid-micro','hid-solic'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  ['inp-mac','inp-leito','inp-perfil','inp-spec','inp-cx','inp-micro','inp-solic','inp-cid','inp-proc','inp-anam'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  ['hid-mac','hid-leito','hid-perfil','hid-spec','hid-cx','hid-micro','hid-solic'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
   const ip=document.getElementById('inp-perfil');ip.disabled=true;ip.placeholder='Selecione o tipo de leito antes...';
   const im=document.getElementById('inp-micro');im.disabled=true;im.placeholder='Selecione a macro antes...';
   const is=document.getElementById('inp-solic');if(is){is.disabled=true;is.placeholder='Selecione a macro antes...';}
