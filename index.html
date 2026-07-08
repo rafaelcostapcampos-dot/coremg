@@ -238,6 +238,14 @@ footer{text-align:center;padding:20px;font-size:10px;color:#aaa;border-top:1px s
             <div class="acd" id="solic-drop"></div>
           </div>
         </div>
+        <div class="fg">
+          <label>Macro de Destino<span class="opt-lbl">opcional — p/ transferência inter-macro</span></label>
+          <div class="acw">
+            <input id="inp-macdest" type="text" placeholder="Ex: Triângulo do Sul..." autocomplete="off">
+            <input id="hid-macdest" type="hidden">
+            <div class="acd" id="macdest-drop"></div>
+          </div>
+        </div>
       </div>
 
       <div class="form-group">
@@ -431,6 +439,9 @@ function initCampos(){
   registerAC('inp-mac','hid-mac','mac-drop',
     f=>MACROS.filter(m=>norm(tc(m)).includes(norm(f))).map(m=>({val:m,label:tc(m)})),
     ()=>{atualizarMicro();}
+  );
+  registerAC('inp-macdest','hid-macdest','macdest-drop',
+    f=>MACROS.filter(m=>m!==(document.getElementById('hid-mac').value||'') && norm(tc(m)).includes(norm(f))).map(m=>({val:m,label:tc(m)}))
   );
   registerAC('inp-leito','hid-leito','leito-drop',
     f=>[{val:'enfermaria',label:'Enfermaria'},{val:'uti',label:'UTI'}].filter(o=>norm(o.label).includes(norm(f))),
@@ -773,6 +784,7 @@ function buscarInterno(){
   const micro=document.getElementById('hid-micro').value;
   const microK=micro?norm(micro):'';
   const solicCnes=(document.getElementById('hid-solic')||{}).value||'';
+  const macDest=((document.getElementById('hid-macdest')||{}).value||'').toUpperCase();
   window._cxCaso=(document.getElementById('hid-cx')||{}).value||'';
   let spec=document.getElementById('hid-spec').value;
 
@@ -845,6 +857,10 @@ function buscarInterno(){
   });
   // Ordenação: 1º quem cobre MAIS necessidades, 2º pontuação, 3º distância
   const ord=a=>a.sort((x,y)=>(y._cob.length-x._cob.length)||(y._sc-x._sc)||((x._km==null?9e9:x._km)-(y._km==null?9e9:y._km))||x.n.localeCompare(y.n));
+  // ── MACRO DE DESTINO escolhida: a seção "outras macros" mostra SÓ ela ──
+  if(macDest){
+    for(let i=baixa.length-1;i>=0;i--){ if((baixa[i]._mk||'').toUpperCase()!==macDest){ baixa.splice(i,1); } }
+  }
   ord(alta);ord(media);ord(baixa);
   // ── Caso de ALTA complexidade: a referência resolutiva lidera MESMO fora da micro ──
   if(window._cxCaso==='ALTA'){
@@ -878,7 +894,7 @@ function buscarInterno(){
   let maxSc=1;
   const upMax=arr=>{for(let i=0;i<arr.length;i++){if(arr[i]._sc>maxSc)maxSc=arr[i]._sc;}};
   upMax(alta);upMax(media);upMax(baixa);
-  renderizar(alta,media,baixa,micro,maxSc,{spec:spec,auto:specAuto,detectadas:detectadas,extras:specsExtras,totalNec:totalNec,solic:solicItem,interMacro:interMacro});
+  renderizar(alta,media,baixa,micro,maxSc,{spec:spec,auto:specAuto,detectadas:detectadas,extras:specsExtras,totalNec:totalNec,solic:solicItem,interMacro:interMacro,macDest:macDest});
 }
 
 // ════════════ RENDER ════════════
@@ -917,10 +933,13 @@ function renderizar(alta,media,baixa,micro,maxSc,deteccao){
   const lstMEl=document.getElementById('lst-m'); if(lstMEl)lstMEl.style.display='block';
   // Outras macros: recolhida por padrão; no modo INTER-MACRO abre destacada
   const hdrB=document.getElementById('hdr-b');
-  if(hdrB)hdrB.innerHTML = interM
-    ? '<span id="chev-b">▼</span> 🔁 Transferência INTER-MACRO — resolutivos de outras macrorregiões primeiro <span class="bdg">'+baixa.length+'</span>'
-    : '<span id="chev-b">▶</span> ⚪ Outras Macrorregiões <span class="bdg">'+baixa.length+'</span> <span style="font-weight:400;font-size:9px;opacity:.7">(toque para abrir)</span>';
-  const lstBEl=document.getElementById('lst-b'); if(lstBEl)lstBEl.style.display=interM?'block':'none';
+  const macDest=deteccao&&deteccao.macDest;
+  if(hdrB)hdrB.innerHTML = macDest
+    ? '<span id="chev-b">▼</span> 🔁 Destino escolhido — '+esc(tc(macDest))+' <span class="bdg">'+baixa.length+'</span>'
+    : (interM
+      ? '<span id="chev-b">▼</span> 🔁 Transferência INTER-MACRO — resolutivos de outras macrorregiões primeiro <span class="bdg">'+baixa.length+'</span>'
+      : '<span id="chev-b">▶</span> ⚪ Outras Macrorregiões <span class="bdg">'+baixa.length+'</span> <span style="font-weight:400;font-size:9px;opacity:.7">(toque para abrir)</span>');
+  const lstBEl=document.getElementById('lst-b'); if(lstBEl)lstBEl.style.display=(interM||macDest)?'block':'none';
 
   // Hospital solicitante (destacado no topo, fora do ranking)
   const secSolic=document.getElementById('sec-solic'), lstSolic=document.getElementById('lst-solic');
@@ -1132,8 +1151,8 @@ function card(h,maxSc,isBest){
 }
 
 function limpar(){
-  ['inp-mac','inp-leito','inp-perfil','inp-spec','inp-cx','inp-micro','inp-solic','inp-cid','inp-proc','inp-anam'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
-  ['hid-mac','hid-leito','hid-perfil','hid-spec','hid-cx','hid-micro','hid-solic'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  ['inp-mac','inp-leito','inp-perfil','inp-spec','inp-cx','inp-micro','inp-solic','inp-macdest','inp-cid','inp-proc','inp-anam'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  ['hid-mac','hid-leito','hid-perfil','hid-spec','hid-cx','hid-micro','hid-solic','hid-macdest'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
   const ip=document.getElementById('inp-perfil');ip.disabled=true;ip.placeholder='Selecione o tipo de leito antes...';
   const im=document.getElementById('inp-micro');im.disabled=true;im.placeholder='Selecione a macro antes...';
   const is=document.getElementById('inp-solic');if(is){is.disabled=true;is.placeholder='Selecione a macro antes...';}
